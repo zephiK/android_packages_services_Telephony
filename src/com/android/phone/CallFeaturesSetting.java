@@ -171,6 +171,8 @@ public class CallFeaturesSetting extends PreferenceActivity
 
     private static final String ENABLE_VIDEO_CALLING_KEY = "button_enable_video_calling";
 
+    private static final String BUTTON_PROXIMITY_KEY   = "button_proximity_key";
+
     /** Event for Async voicemail change call */
     private static final int EVENT_VOICEMAIL_CHANGED        = 500;
     private static final int EVENT_FORWARDING_CHANGED       = 501;
@@ -211,6 +213,7 @@ public class CallFeaturesSetting extends PreferenceActivity
     private SwitchPreference mEnableVideoCalling;
     private boolean isSpeedDialListStarted = false;
     private PreferenceScreen mButtonBlacklist;
+    private SwitchPreference mButtonProximity;
 
     /**
      * Results of reading forwarding settings
@@ -392,6 +395,16 @@ public class CallFeaturesSetting extends PreferenceActivity
                 dialog.getActionBar().setDisplayHomeAsUpEnabled(false);
             }
             return false;
+        } else if (preference == mButtonProximity) {
+            int checked = mButtonProximity.isChecked() ? 1 : 0;
+            Settings.System.putInt(mPhone.getContext().getContentResolver(),
+                    Settings.System.IN_CALL_PROXIMITY_SENSOR, checked);
+            if (checked == 1) {
+                mButtonProximity.setSummary(R.string.proximity_on_summary);
+            } else {
+                mButtonProximity.setSummary(R.string.proximity_off_summary);
+            }
+            return true;
         }
         return false;
     }
@@ -468,7 +481,6 @@ public class CallFeaturesSetting extends PreferenceActivity
                 return false;
             }
         }
-
         // Always let the preference setting proceed.
         return true;
     }
@@ -1146,6 +1158,8 @@ public class CallFeaturesSetting extends PreferenceActivity
         super.onCreate(icicle);
         if (DBG) log("onCreate: Intent is " + getIntent());
 
+        PreferenceScreen preferenceScreen = getPreferenceScreen();
+
         // Make sure we are running as the primary user.
         if (UserHandle.myUserId() != UserHandle.USER_OWNER) {
             Toast.makeText(this, R.string.call_settings_primary_user_only,
@@ -1167,6 +1181,15 @@ public class CallFeaturesSetting extends PreferenceActivity
         mSubscriptionInfoHelper.setActionBarTitle(
                 getActionBar(), getResources(), R.string.call_settings_with_label);
         mPhone = mSubscriptionInfoHelper.getPhone();
+
+        if (mButtonProximity != null) {
+            if (getResources().getBoolean(R.bool.config_proximity_enable)) {
+                mButtonProximity.setOnPreferenceChangeListener(this);
+            } else {
+                getPreferenceScreen().removePreference(mButtonProximity);
+                mButtonProximity = null;
+            }
+        }
     }
 
     @Override
@@ -1224,6 +1247,8 @@ public class CallFeaturesSetting extends PreferenceActivity
         updateVMPreferenceWidgets(mVoicemailProviders.getValue());
 
         mEnableVideoCalling = (SwitchPreference) findPreference(ENABLE_VIDEO_CALLING_KEY);
+
+        mButtonProximity = (SwitchPreference) findPreference(BUTTON_PROXIMITY_KEY);
 
         if (getResources().getBoolean(R.bool.dtmf_type_enabled)) {
             mButtonDTMF.setOnPreferenceChangeListener(this);
@@ -1350,6 +1375,14 @@ public class CallFeaturesSetting extends PreferenceActivity
                         com.android.internal.R.bool.config_carrier_volte_tty_supported)) {
             TelephonyManager tm = (TelephonyManager) getSystemService(Context.TELEPHONY_SERVICE);
             tm.listen(mPhoneStateListener, PhoneStateListener.LISTEN_CALL_STATE);
+        }
+
+        if (mButtonProximity != null) {
+            boolean checked = Settings.System.getInt(getContentResolver(),
+                    Settings.System.IN_CALL_PROXIMITY_SENSOR, 1) == 1;
+            mButtonProximity.setChecked(checked);
+            mButtonProximity.setSummary(checked ? R.string.proximity_on_summary
+                    : R.string.proximity_off_summary);
         }
     }
 
