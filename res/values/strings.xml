@@ -1246,4 +1246,11 @@
     <string name="sim_label_emergency_calls">Emergency calls</string>
     <string name="sim_description_emergency_calls">Emergency calling only</string>
     <string name="sim_description_default">SIM card, slot: <xliff:g id="slot_id">%s</xliff:g></string>
+
+    <!-- Mobile network settings screen, setting check box name -->
+    <string name="national_roaming">National data roaming</string>
+    <!-- Mobile network settings screen, setting summary text when check box is selected -->
+    <string name="national_roaming_enable">Connect to data services when nationally roaming</string>
+    <!-- Mobile network settings screen, setting summary text when check box is clear -->
+    <string name="national_roaming_disable">Do not connect to data services when nationally roaming</string>
 </resources>
