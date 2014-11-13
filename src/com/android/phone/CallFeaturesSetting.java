@@ -39,12 +39,12 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.os.UserHandle;
-import android.preference.CheckBoxPreference;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 import android.preference.PreferenceScreen;
+import android.preference.SwitchPreference;
 import android.provider.ContactsContract.CommonDataKinds;
 import android.provider.Settings;
 import android.telecom.PhoneAccountHandle;
@@ -65,10 +65,12 @@ import com.android.phone.settings.AccountSelectionPreference;
 import com.android.services.telephony.sip.SipUtil;
 
 import java.lang.String;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
@@ -184,6 +186,19 @@ public class CallFeaturesSetting extends PreferenceActivity
     private static final String PHONE_ACCOUNT_SETTINGS_KEY =
             "phone_account_settings_preference_screen";
 
+    private static final String SWITCH_ENABLE_FORWARD_LOOKUP =
+            "switch_enable_forward_lookup";
+    private static final String SWITCH_ENABLE_PEOPLE_LOOKUP =
+            "switch_enable_people_lookup";
+    private static final String SWITCH_ENABLE_REVERSE_LOOKUP =
+            "switch_enable_reverse_lookup";
+    private static final String BUTTON_CHOOSE_FORWARD_LOOKUP_PROVIDER =
+            "button_choose_forward_lookup_provider";
+    private static final String BUTTON_CHOOSE_PEOPLE_LOOKUP_PROVIDER =
+            "button_choose_people_lookup_provider";
+    private static final String BUTTON_CHOOSE_REVERSE_LOOKUP_PROVIDER =
+            "button_choose_reverse_lookup_provider";
+
     private Intent mContactListIntent;
 
     /** Event for Async voicemail change call */
@@ -246,8 +261,8 @@ public class CallFeaturesSetting extends PreferenceActivity
     };
 
     /** Whether dialpad plays DTMF tone or not. */
-    private CheckBoxPreference mButtonAutoRetry;
-    private CheckBoxPreference mButtonHAC;
+    private SwitchPreference mButtonAutoRetry;
+    private SwitchPreference mButtonHAC;
     private ListPreference mButtonDTMF;
     private ListPreference mButtonTTY;
     private Preference mPhoneAccountSettingsPreference;
@@ -255,8 +270,14 @@ public class CallFeaturesSetting extends PreferenceActivity
     private PreferenceScreen mVoicemailSettingsScreen;
     private PreferenceScreen mVoicemailSettings;
     private Preference mVoicemailNotificationRingtone;
-    private CheckBoxPreference mVoicemailNotificationVibrate;
+    private SwitchPreference mVoicemailNotificationVibrate;
     private AccountSelectionPreference mDefaultOutgoingAccount;
+    private SwitchPreference mEnableForwardLookup;
+    private SwitchPreference mEnablePeopleLookup;
+    private SwitchPreference mEnableReverseLookup;
+    private ListPreference mChooseForwardLookupProvider;
+    private ListPreference mChoosePeopleLookupProvider;
+    private ListPreference mChooseReverseLookupProvider;
 
     private class VoiceMailProvider {
         public VoiceMailProvider(String name, Intent intent) {
@@ -577,6 +598,14 @@ public class CallFeaturesSetting extends PreferenceActivity
                 mChangingVMorFwdDueToProviderChange = true;
                 saveVoiceMailAndForwardingNumber(newProviderKey, newProviderSettings);
             }
+        } else if (preference == mEnableForwardLookup
+                || preference == mEnablePeopleLookup
+                || preference == mEnableReverseLookup) {
+            saveLookupProviderSwitch(preference, (Boolean) objValue);
+        } else if (preference == mChooseForwardLookupProvider
+                || preference == mChoosePeopleLookupProvider
+                || preference == mChooseReverseLookupProvider) {
+            saveLookupProviderSetting(preference, (String) objValue);
         }
         // always let the preference setting proceed.
         return true;
@@ -1555,8 +1584,8 @@ public class CallFeaturesSetting extends PreferenceActivity
         }
 
         mButtonDTMF = (ListPreference) findPreference(BUTTON_DTMF_KEY);
-        mButtonAutoRetry = (CheckBoxPreference) findPreference(BUTTON_RETRY_KEY);
-        mButtonHAC = (CheckBoxPreference) findPreference(BUTTON_HAC_KEY);
+        mButtonAutoRetry = (SwitchPreference) findPreference(BUTTON_RETRY_KEY);
+        mButtonHAC = (SwitchPreference) findPreference(BUTTON_HAC_KEY);
         mButtonTTY = (ListPreference) findPreference(BUTTON_TTY_KEY);
         mVoicemailProviders = (ListPreference) findPreference(BUTTON_VOICEMAIL_PROVIDER_KEY);
 
@@ -1568,7 +1597,7 @@ public class CallFeaturesSetting extends PreferenceActivity
             mVoicemailNotificationRingtone =
                     findPreference(BUTTON_VOICEMAIL_NOTIFICATION_RINGTONE_KEY);
             mVoicemailNotificationVibrate =
-                    (CheckBoxPreference) findPreference(BUTTON_VOICEMAIL_NOTIFICATION_VIBRATE_KEY);
+                    (SwitchPreference) findPreference(BUTTON_VOICEMAIL_NOTIFICATION_VIBRATE_KEY);
             initVoiceMailProviders();
         }
 
@@ -1639,6 +1668,50 @@ public class CallFeaturesSetting extends PreferenceActivity
             }
         }
 
+        mEnableForwardLookup = (SwitchPreference)
+                findPreference(SWITCH_ENABLE_FORWARD_LOOKUP);
+        mEnablePeopleLookup = (SwitchPreference)
+                findPreference(SWITCH_ENABLE_PEOPLE_LOOKUP);
+        mEnableReverseLookup = (SwitchPreference)
+                findPreference(SWITCH_ENABLE_REVERSE_LOOKUP);
+
+        mEnableForwardLookup.setOnPreferenceChangeListener(this);
+        mEnablePeopleLookup.setOnPreferenceChangeListener(this);
+        mEnableReverseLookup.setOnPreferenceChangeListener(this);
+
+        restoreLookupProviderSwitches();
+
+        mChooseForwardLookupProvider = (ListPreference)
+                findPreference(BUTTON_CHOOSE_FORWARD_LOOKUP_PROVIDER);
+        mChoosePeopleLookupProvider = (ListPreference)
+                findPreference(BUTTON_CHOOSE_PEOPLE_LOOKUP_PROVIDER);
+        mChooseReverseLookupProvider = (ListPreference)
+                findPreference(BUTTON_CHOOSE_REVERSE_LOOKUP_PROVIDER);
+
+        mChooseForwardLookupProvider.setOnPreferenceChangeListener(this);
+        mChoosePeopleLookupProvider.setOnPreferenceChangeListener(this);
+        mChooseReverseLookupProvider.setOnPreferenceChangeListener(this);
+
+        if (PhoneUtils.isPackageInstalled(this, getString(R.string.cyngn_reverse_lookup_provider_package))) {
+            List<String> reverseLookupProviders = new LinkedList<String>(Arrays.asList(getResources().getStringArray(R.array.reverse_lookup_provider_names)));
+            List<String> reverseLookupProvidersValues = new LinkedList<String>(Arrays.asList(getResources().getStringArray(R.array.reverse_lookup_providers)));
+
+            reverseLookupProviders.add(getString(R.string.cyngn_reverse_lookup_provider_name));
+            reverseLookupProvidersValues.add(getString(R.string.cyngn_reverse_lookup_provider_value));
+
+            String[] reverseLookupArray = new String[reverseLookupProviders.size()];
+            String[] reverseLookupNameArray = new String[reverseLookupProvidersValues.size()];
+            reverseLookupArray = reverseLookupProviders.toArray(reverseLookupArray);
+            reverseLookupNameArray = reverseLookupProvidersValues.toArray(reverseLookupNameArray);
+            mChooseReverseLookupProvider.setEntries(reverseLookupArray);
+            mChooseReverseLookupProvider.setEntryValues(reverseLookupNameArray);
+        } else {
+            mChooseReverseLookupProvider.setEntries(getResources().getStringArray(R.array.reverse_lookup_provider_names));
+            mChooseReverseLookupProvider.setEntryValues(getResources().getStringArray(R.array.reverse_lookup_providers));
+        }
+
+        restoreLookupProviders();
+
         // check the intent that started this activity and pop up the voicemail
         // dialog if we've been asked to.
         // If we have at least one non default VM provider registered then bring up
@@ -1692,6 +1765,9 @@ public class CallFeaturesSetting extends PreferenceActivity
             mVoicemailNotificationVibrate.setChecked(prefs.getBoolean(
                     BUTTON_VOICEMAIL_NOTIFICATION_VIBRATE_KEY, false));
         }
+
+        restoreLookupProviderSwitches();
+        restoreLookupProviders();
 
         // Look up the voicemail ringtone name asynchronously and update its preference.
         new Thread(mVoicemailRingtoneLookupRunnable).start();
@@ -1807,6 +1883,77 @@ public class CallFeaturesSetting extends PreferenceActivity
 
             mVoicemailNotificationVibrate.setEnabled(true);
         }
+    }
+
+    private void saveLookupProviderSwitch(Preference pref, Boolean newValue) {
+        if (DBG) log("saveLookupProviderSwitch()");
+
+        String key;
+
+        if (pref == mEnableForwardLookup) {
+            key = Settings.System.ENABLE_FORWARD_LOOKUP;
+        } else if (pref == mEnablePeopleLookup) {
+            key = Settings.System.ENABLE_PEOPLE_LOOKUP;
+        } else if (pref == mEnableReverseLookup) {
+            key = Settings.System.ENABLE_REVERSE_LOOKUP;
+        } else {
+            return;
+        }
+
+        Settings.System.putInt(getContentResolver(), key, newValue ? 1 : 0);
+    }
+
+    private void restoreLookupProviderSwitches() {
+        if (DBG) log("restoreLookupProviderSwitches()");
+
+        mEnableForwardLookup.setChecked(Settings.System.getInt(
+                getContentResolver(),
+                Settings.System.ENABLE_FORWARD_LOOKUP, 1) != 0);
+        mEnablePeopleLookup.setChecked(Settings.System.getInt(
+                getContentResolver(),
+                Settings.System.ENABLE_PEOPLE_LOOKUP, 1) != 0);
+        mEnableReverseLookup.setChecked(Settings.System.getInt(
+                getContentResolver(),
+                Settings.System.ENABLE_REVERSE_LOOKUP, 1) != 0);
+    }
+
+    private void restoreLookupProvider(ListPreference pref, String key) {
+        String provider = Settings.System.getString(getContentResolver(), key);
+        if (provider == null) {
+            pref.setValueIndex(0);
+            saveLookupProviderSetting(pref, pref.getEntryValues()[0].toString());
+        } else {
+            pref.setValue(provider);
+        }
+    }
+
+    private void restoreLookupProviders() {
+        if (DBG) log("restoreLookupProviders()");
+
+        restoreLookupProvider(mChooseForwardLookupProvider,
+                Settings.System.FORWARD_LOOKUP_PROVIDER);
+        restoreLookupProvider(mChoosePeopleLookupProvider,
+                Settings.System.PEOPLE_LOOKUP_PROVIDER);
+        restoreLookupProvider(mChooseReverseLookupProvider,
+                Settings.System.REVERSE_LOOKUP_PROVIDER);
+    }
+
+    private void saveLookupProviderSetting(Preference pref, String newValue) {
+        if (DBG) log("saveLookupProviderSetting()");
+
+        String key;
+
+        if (pref == mChooseForwardLookupProvider) {
+            key = Settings.System.FORWARD_LOOKUP_PROVIDER;
+        } else if (pref == mChoosePeopleLookupProvider) {
+            key = Settings.System.PEOPLE_LOOKUP_PROVIDER;
+        } else if (pref == mChooseReverseLookupProvider) {
+            key = Settings.System.REVERSE_LOOKUP_PROVIDER;
+        } else {
+            return;
+        }
+
+        Settings.System.putString(getContentResolver(), key, newValue);
     }
 
     /**
