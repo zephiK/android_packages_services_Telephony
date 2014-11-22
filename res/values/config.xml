@@ -117,7 +117,7 @@
     <bool name="config_operator_selection_expand" translatable="false">true</bool>
     <bool name="config_prefer_2g" translatable="false">true</bool>
     <!-- Show enabled lte option for lte device -->
-    <bool name="config_enabled_lte" translatable="false">false</bool>
+    <bool name="config_enabled_lte" translatable="true">false</bool>
     <!-- Show cdma auto network mode in (glabal) roaming -->
     <bool name="config_show_cdma" translatable="false">false</bool>
 
