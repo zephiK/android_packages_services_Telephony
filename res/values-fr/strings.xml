@@ -548,4 +548,17 @@
     <string name="sim_label_emergency_calls" msgid="4847699229529306397">"Appels d\'urgence"</string>
     <string name="sim_description_emergency_calls" msgid="7535215397212301562">"Appels d\'urgence seulement"</string>
     <string name="sim_description_default" msgid="4778679519938775515">"Carte SIM, emplacement : <xliff:g id="SLOT_ID">%s</xliff:g>"</string>
+
+    <!-- Number lookup -->
+    <string name="number_lookup">Rechercher un numéro de téléphone</string>
+    <string name="enable_forward_lookup_title">Recherche directe</string>
+    <string name="enable_forward_lookup_summary">Afficher les lieux à proximité lors de la recherche dans le composeur</string>
+    <string name="enable_people_lookup_title">Recherche de personnes</string>
+    <string name="enable_people_lookup_summary">Voir les résultats en ligne pour les personnes lors de la recherche dans le composeur</string>
+    <string name="enable_reverse_lookup_title">Recherche inversée</string>
+    <string name="enable_reverse_lookup_summary">Rechercher des informations sur la personne ou le lieu pour les numéros inconnus sur les appels entrants</string>
+    <string name="choose_lookup_providers">Choisir un fournisseur de recherche</string>
+    <string name="choose_forward_lookup_provider_title">Fournisseur de recherche téléphone</string>
+    <string name="choose_people_lookup_provider_title">Fournisseur de recherche personne</string>
+    <string name="choose_reverse_lookup_provider_title">Fournisseur de recherche inversé</string>
 </resources>
