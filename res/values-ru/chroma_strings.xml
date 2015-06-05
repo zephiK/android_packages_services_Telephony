@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--  Copyright (C) 2007 The Android Open Source Project
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+ -->
+
+<resources xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:xliff="urn:oasis:names:tc:xliff:document:1.2">
+    <!-- Number lookup -->
+    <string name="number_lookup">Поиск номеров телефона</string>
+    <string name="enable_forward_lookup_title">Прямой поиск</string>
+    <string name="enable_forward_lookup_summary">Показывать ближайшие организации при поиске в номеронабирателе</string>
+    <string name="enable_people_lookup_title">Поиск по людям</string>
+    <string name="enable_people_lookup_summary">Показывать результаты из сети для контактов при поиске</string>
+    <string name="enable_reverse_lookup_title">Обратный поиск</string>
+    <string name="enable_reverse_lookup_summary">Искать информацию о человеке/месте для незнакомых входящих номеров</string>
+    <string name="choose_lookup_providers">Выберите поставщиков поиска</string>
+    <string name="choose_forward_lookup_provider_title">Выбрать поставщика прямого поиска</string>
+    <string name="choose_people_lookup_provider_title">Выбрать поставщика поиска данных о людях</string>
+    <string name="choose_reverse_lookup_provider_title">Выбрать поставщика обратного поиска</string>
+
+    <!-- Chinese Reverse Lookup Provider -->
+    <string name="cyngn_reverse_lookup_provider_package" translatable="false">com.cyngn.chineselocationlookup</string>
+    <string name="cyngn_reverse_lookup_provider_name">Cyngn Chinese (CN)</string>
+    <string name="cyngn_reverse_lookup_provider_value" translatable="false">CyngnChinese</string>
+
+    <!-- Advanced Settings -->
+    <string name="advanced_setting">Дополнительные настройки</string>
+
+    <!-- Blacklist preferences -->
+    <string name="blacklist_title">Черный список</string>
+    <string name="blacklist_summary_disabled">Выключен</string>
+    <string name="blacklist_summary">Входящие звонки с номеров из черного списка будут блокированы</string>
+
+    <!-- Blacklist preferences -->
+    <string name="blacklist_title">Черный список</string>
+    <string name="blacklist_summary_disabled">Выключен</string>
+    <string name="blacklist_summary">Вы не будете получать входящие вызовы или сообщения от телефонных номеров из черного списка</string>
+    
+    <!-- Mobile network settings screen, setting check box name -->
+    <string name="national_roaming">Национальный роуминг</string>
+    <!-- Mobile network settings screen, setting summary text when check box is selected -->
+    <string name="national_roaming_enable">Подключаться к службам передачи данных в национальном роуминге</string>
+    <!-- Mobile network settings screen, setting summary text when check box is clear -->
+    <string name="national_roaming_disable">Не подключаться к службам передачи данных в национальном роуминге</string>
+</resources>
