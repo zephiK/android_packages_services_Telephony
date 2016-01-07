@@ -129,13 +129,6 @@ public class PhoneUtils {
     /** Noise suppression status as selected by user */
     private static boolean sIsNoiseSuppressionEnabled = true;
 
-    /**
-     * Theme to use for dialogs displayed by utility methods in this class. This is needed
-     * because these dialogs are displayed using the application context, which does not resolve
-     * the dialog theme correctly.
-     */
-    private static final int THEME = AlertDialog.THEME_DEVICE_DEFAULT_LIGHT;
-
     private static class FgRingCalls {
         private Call fgCall;
         private Call ringing;
@@ -833,7 +826,7 @@ public class PhoneUtils {
             if (DBG) log("running USSD code, displaying indeterminate progress.");
 
             // create the indeterminate progress dialog and display it.
-            ProgressDialog pd = new ProgressDialog(context, THEME);
+            ProgressDialog pd = new ProgressDialog(context, R.style.DialerAlertDialogTheme);
             pd.setMessage(context.getText(R.string.ussdRunning));
             pd.setCancelable(false);
             pd.setIndeterminate(true);
@@ -904,7 +897,7 @@ public class PhoneUtils {
 
             // create the progress dialog, make sure the flags and type are
             // set correctly.
-            ProgressDialog pd = new ProgressDialog(app, THEME);
+            ProgressDialog pd = new ProgressDialog(app, R.style.DialerAlertDialogTheme);
             pd.setTitle(title);
             pd.setMessage(text);
             pd.setCancelable(false);
@@ -940,7 +933,9 @@ public class PhoneUtils {
                 // places the message at the forefront of the UI.
 
                 if (sUssdDialog == null) {
-                    sUssdDialog = new AlertDialog.Builder(context, THEME)
+                    ContextThemeWrapper contextThemeWrapper =
+                            new ContextThemeWrapper(context, R.style.DialerAlertDialogTheme);
+                    sUssdDialog = new AlertDialog.Builder(contextThemeWrapper)
                             .setPositiveButton(R.string.ok, null)
                             .setCancelable(true)
                             .setOnDismissListener(new DialogInterface.OnDismissListener() {
