@@ -309,7 +309,6 @@
     <string name="network_lte" msgid="7702681952521375754">"LTE (recomandat)"</string>
     <string name="network_4G" msgid="2723512640529983138">"4G (recomandat)"</string>
     <string name="network_global" msgid="1323190488685355309">"Global"</string>
-    <string name="network_tdscdma" msgid="4713495909689860245">"Numai TDSCDMA"</string>
     <string name="cdma_system_select_title" msgid="5757657769327732833">"Selectaţi sistemul"</string>
     <string name="cdma_system_select_summary" msgid="60460043745797517">"Schimbaţi modul de roaming CDMA"</string>
     <string name="cdma_system_select_dialogtitle" msgid="6083355415165359075">"Selectaţi sistemul"</string>
@@ -462,7 +461,7 @@
     <string name="onscreenAudioText" msgid="1710087112800041743">"Audio"</string>
     <string name="onscreenVideoCallText" msgid="4800924186056115442">"Apel video"</string>
     <string name="importSimEntry" msgid="6614358325359736031">"Importaţi"</string>
-    <string name="importAllSimEntries" msgid="1503181169636198673">"Importaţi-le pe toate"</string>
+    <string name="importAllSimEntries" msgid="1503181169636198673">"Importați-le pe toate"</string>
     <string name="importingSimContacts" msgid="7374056215462575769">"Se importă persoanele din agenda de pe cardul SIM"</string>
     <string name="importToFDNfromContacts" msgid="2130620207013368580">"Importaţi din Agendă"</string>
     <string name="hac_mode_title" msgid="8740268574688743289">"Asistență auditivă"</string>

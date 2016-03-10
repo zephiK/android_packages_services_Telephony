@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.android.phone;
 
 import java.util.ArrayList;
@@ -53,7 +52,6 @@ import android.text.TextUtils;
 import android.util.ArrayMap;
 import android.util.Log;
 import android.widget.Toast;
-
 import com.android.internal.telephony.Phone;
 import com.android.internal.telephony.PhoneBase;
 import com.android.internal.telephony.TelephonyCapabilities;
@@ -62,12 +60,10 @@ import com.android.phone.vvm.omtp.sync.VoicemailStatusQueryHelper;
 import com.android.phone.settings.VoicemailNotificationSettingsUtil;
 import com.android.phone.settings.VoicemailProviderSettingsUtil;
 import com.android.internal.telephony.util.BlacklistUtils;
-
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-
 /**
  * NotificationManager-related utility code for the Phone app.
  *
@@ -83,7 +79,6 @@ public class NotificationMgr {
             (PhoneGlobals.DBG_LEVEL >= 1) && (SystemProperties.getInt("ro.debuggable", 0) == 1);
     // Do not check in with VDBG = true, since that may write PII to the system log.
     private static final boolean VDBG = false;
-
     // notification types
     static final int MMI_NOTIFICATION = 1;
     static final int NETWORK_SELECTION_NOTIFICATION = 2;
@@ -98,27 +93,22 @@ public class NotificationMgr {
 
     /** The singleton NotificationMgr instance. */
     private static NotificationMgr sInstance;
-
     private PhoneGlobals mApp;
     private Phone mPhone;
-
     private Context mContext;
     private NotificationManager mNotificationManager;
+    private final ComponentName mNotificationComponent;
     private StatusBarManager mStatusBarManager;
     private UserManager mUserManager;
     private Toast mToast;
     private SubscriptionManager mSubscriptionManager;
     private TelecomManager mTelecomManager;
     private TelephonyManager mTelephonyManager;
-
     public StatusBarHelper statusBarHelper;
-
     // used to track the notification of selected network unavailable
     private boolean mSelectedUnavailableNotify = false;
-
     // used to track whether the message waiting indicator is visible, per subscription id.
     private ArrayMap<Integer, Boolean> mMwiVisible = new ArrayMap<Integer, Boolean>();
-
     /**
      * Private constructor (this is a singleton).
      * @see #init(PhoneGlobals)
@@ -136,8 +126,11 @@ public class NotificationMgr {
         mSubscriptionManager = SubscriptionManager.from(mContext);
         mTelecomManager = TelecomManager.from(mContext);
         mTelephonyManager = (TelephonyManager) app.getSystemService(Context.TELEPHONY_SERVICE);
+        final String notificationComponent = mContext.getString(
+                R.string.config_customVoicemailComponent);
+        mNotificationComponent = notificationComponent != null
+                ? ComponentName.unflattenFromString(notificationComponent) : null;
     }
-
     /**
      * Initialize the singleton NotificationMgr instance.
      *
@@ -157,7 +150,7 @@ public class NotificationMgr {
         }
     }
 
-    /**
+     /**
      * Configures a Notification to emit the blinky Voice mail
      * signal.
      */
@@ -212,10 +205,8 @@ public class NotificationMgr {
         private boolean mIsNotificationEnabled = true;
         private boolean mIsExpandedViewEnabled = true;
         private boolean mIsSystemBarNavigationEnabled = true;
-
         private StatusBarHelper() {
         }
-
         /**
          * Enables or disables auditory / vibrational alerts.
          *
@@ -228,7 +219,6 @@ public class NotificationMgr {
                 updateStatusBar();
             }
         }
-
         /**
          * Enables or disables the expanded view of the status bar
          * (i.e. the ability to pull down the "notification windowshade").
@@ -242,7 +232,6 @@ public class NotificationMgr {
                 updateStatusBar();
             }
         }
-
         /**
          * Enables or disables the navigation via the system bar (the
          * "soft buttons" at the bottom of the screen)
@@ -257,13 +246,11 @@ public class NotificationMgr {
                 updateStatusBar();
             }
         }
-
         /**
          * Updates the status bar to reflect the current desired state.
          */
         private void updateStatusBar() {
             int state = StatusBarManager.DISABLE_NONE;
-
             if (!mIsExpandedViewEnabled) {
                 state |= StatusBarManager.DISABLE_EXPAND;
             }
@@ -277,19 +264,16 @@ public class NotificationMgr {
                 state |= StatusBarManager.DISABLE_BACK;
                 state |= StatusBarManager.DISABLE_SEARCH;
             }
-
             if (DBG) log("updateStatusBar: state = 0x" + Integer.toHexString(state));
             mStatusBarManager.disable(state);
         }
     }
-
     /** The projection to use when querying the phones table */
     static final String[] PHONES_PROJECTION = new String[] {
         PhoneLookup.NUMBER,
         PhoneLookup.DISPLAY_NAME,
         PhoneLookup._ID
     };
-
     /**
      * Re-creates the message waiting indicator (voicemail) notification if it is showing.  Used to
      * refresh the voicemail intent on the indicator when the user changes it via the voicemail
@@ -317,7 +301,6 @@ public class NotificationMgr {
             }
         }
     }
-
     /**
      * Updates the message waiting indicator (voicemail) notification.
      *
@@ -326,7 +309,6 @@ public class NotificationMgr {
     /* package */ void updateMwi(int subId, boolean visible) {
         updateMwi(subId, visible, true /* enableNotificationSound */);
     }
-
     /**
      * Updates the message waiting indicator (voicemail) notification.
      *
@@ -341,7 +323,6 @@ public class NotificationMgr {
             Log.w(LOG_TAG, "Called updateMwi() on non-voice-capable device! Ignoring...");
             return;
         }
-
         Phone phone = PhoneGlobals.getPhone(subId);
         if (visible && phone != null) {
             VoicemailStatusQueryHelper queryHelper = new VoicemailStatusQueryHelper(mContext);
@@ -351,38 +332,30 @@ public class NotificationMgr {
                 visible = false;
             }
         }
-
         Log.i(LOG_TAG, "updateMwi(): subId " + subId + " update to " + visible);
         mMwiVisible.put(subId, visible);
-
         if (visible) {
             if (phone == null) {
                 Log.w(LOG_TAG, "Found null phone for: " + subId);
                 return;
             }
-
             SubscriptionInfo subInfo = mSubscriptionManager.getActiveSubscriptionInfo(subId);
             if (subInfo == null) {
                 Log.w(LOG_TAG, "Found null subscription info for: " + subId);
                 return;
             }
-
             int resId = android.R.drawable.stat_notify_voicemail;
-
             // This Notification can get a lot fancier once we have more
             // information about the current voicemail messages.
             // (For example, the current voicemail system can't tell
             // us the caller-id or timestamp of a message, or tell us the
             // message count.)
-
             // But for now, the UI is ultra-simple: if the MWI indication
             // is supposed to be visible, just show a single generic
             // notification.
-
             String notificationTitle = mContext.getString(R.string.notification_voicemail_title);
             String vmNumber = phone.getVoiceMailNumber();
             if (DBG) log("- got vm number: '" + vmNumber + "'");
-
             // The voicemail number may be null because:
             //   (1) This phone has no voicemail number.
             //   (2) This phone has a voicemail number, but the SIM isn't ready yet. This may
@@ -393,22 +366,20 @@ public class NotificationMgr {
                 if (DBG) log("- Null vm number: SIM records not loaded (yet)...");
                 return;
             }
-
+            Integer vmCount = null;
             if (TelephonyCapabilities.supportsVoiceMessageCount(phone)) {
-                int vmCount = phone.getVoiceMessageCount();
+                vmCount = phone.getVoiceMessageCount();
                 String titleFormat = mContext.getString(R.string.notification_voicemail_title_count);
                 notificationTitle = String.format(titleFormat, vmCount);
             }
-
             // This pathway only applies to PSTN accounts; only SIMS have subscription ids.
             PhoneAccountHandle phoneAccountHandle = PhoneUtils.makePstnPhoneAccountHandle(phone);
-
             Intent intent;
             String notificationText;
-            if (TextUtils.isEmpty(vmNumber)) {
+            boolean isSettingsIntent = TextUtils.isEmpty(vmNumber);
+            if (isSettingsIntent) {
                 notificationText = mContext.getString(
                         R.string.notification_voicemail_no_vm_number);
-
                 // If the voicemail number if unknown, instead of calling voicemail, take the user
                 // to the voicemail settings.
                 notificationText = mContext.getString(
@@ -429,15 +400,12 @@ public class NotificationMgr {
                                 null));
                 intent.putExtra(TelecomManager.EXTRA_PHONE_ACCOUNT_HANDLE, phoneAccountHandle);
             }
-
             PendingIntent pendingIntent =
                     PendingIntent.getActivity(mContext, subId /* requestCode */, intent, 0);
             Uri ringtoneUri = null;
-
             if (enableNotificationSound) {
                 ringtoneUri = VoicemailNotificationSettingsUtil.getRingtoneUri(mPhone);
             }
-
             Resources res = mContext.getResources();
             PersistableBundle carrierConfig = PhoneGlobals.getInstance().getCarrierConfigForSubId(
                     mPhone.getSubId());
@@ -451,11 +419,9 @@ public class NotificationMgr {
                     .setSound(ringtoneUri)
                     .setColor(res.getColor(R.color.dialer_theme_color))
                     .setOngoing(false);
-
             if (VoicemailNotificationSettingsUtil.isVibrationEnabled(phone)) {
                 builder.setDefaults(Notification.DEFAULT_VIBRATE);
             }
-
             final Notification notification = builder.build();
             List<UserInfo> users = mUserManager.getUsers(true);
             for (int i = 0; i < users.size(); i++) {
@@ -464,22 +430,68 @@ public class NotificationMgr {
                 if (!mUserManager.hasUserRestriction(
                         UserManager.DISALLOW_OUTGOING_CALLS, userHandle)
                         && !user.isManagedProfile()) {
-                    configureLedNotification(mContext, notification);
-                    mNotificationManager.notifyAsUser(
-                            Integer.toString(subId) /* tag */,
-                            VOICEMAIL_NOTIFICATION,
-                            notification,
-                            userHandle);
+                        configureLedNotification(mContext, notification);
+                    if (!sendNotificationCustomComponent(vmCount, vmNumber, pendingIntent,
+                            isSettingsIntent)) {
+                        mNotificationManager.notifyAsUser(
+                                Integer.toString(subId) /* tag */,
+                                VOICEMAIL_NOTIFICATION,
+                                notification,
+                                userHandle);
+                    }
                 }
             }
         } else {
-            mNotificationManager.cancelAsUser(
-                    Integer.toString(subId) /* tag */,
-                    VOICEMAIL_NOTIFICATION,
-                    UserHandle.ALL);
+            if (!sendNotificationCustomComponent(0, null, null, false)) {
+                mNotificationManager.cancelAsUser(
+                        Integer.toString(subId) /* tag */,
+                        VOICEMAIL_NOTIFICATION,
+                        UserHandle.ALL);
+            }
         }
     }
-
+    /**
+     * Sends a broadcast with the voicemail notification information to a custom component to
+     * handle. This method is also used to indicate to the custom component when to clear the
+     * notification. A pending intent can be passed to the custom component to indicate an action to
+     * be taken as it would by a notification produced in this class.
+     * @param count The number of pending voicemail messages to indicate on the notification. A
+     *              Value of 0 is passed here to indicate that the notification should be cleared.
+     * @param number The voicemail phone number if specified.
+     * @param pendingIntent The intent that should be passed as the action to be taken.
+     * @param isSettingsIntent {@code true} to indicate the pending intent is to launch settings.
+     *                         otherwise, {@code false} to indicate the intent launches voicemail.
+     * @return {@code true} if a custom component was notified of the notification.
+     */
+    private boolean sendNotificationCustomComponent(Integer count, String number,
+            PendingIntent pendingIntent, boolean isSettingsIntent) {
+        if (mNotificationComponent != null) {
+            Intent intent = new Intent();
+            intent.setFlags(Intent.FLAG_RECEIVER_FOREGROUND);
+            intent.setComponent(mNotificationComponent);
+            intent.setAction(TelephonyManager.ACTION_SHOW_VOICEMAIL_NOTIFICATION);
+            if (count != null) {
+                intent.putExtra(TelephonyManager.EXTRA_NOTIFICATION_COUNT, count);
+            }
+            // Additional information about the voicemail notification beyond the count is only
+            // present when the count not specified or greater than 0. The value of 0 represents
+            // clearing the notification, which does not require additional information.
+            if (count == null || count > 0) {
+                if (!TextUtils.isEmpty(number)) {
+                    intent.putExtra(TelephonyManager.EXTRA_VOICEMAIL_NUMBER, number);
+                }
+                if (pendingIntent != null) {
+                    intent.putExtra(isSettingsIntent
+                            ? TelephonyManager.EXTRA_LAUNCH_VOICEMAIL_SETTINGS_INTENT
+                            : TelephonyManager.EXTRA_CALL_VOICEMAIL_INTENT,
+                            pendingIntent);
+                }
+            }
+            mContext.sendBroadcast(intent);
+            return true;
+        }
+        return false;
+    }
     /**
      * Updates the message call forwarding indicator notification.
      *
@@ -493,25 +505,21 @@ public class NotificationMgr {
             // view for now, so the there is less confusion about the icon.  If
             // it is deemed too weird to have CF indications as expanded views,
             // then we'll flip the flag back.
-
             // TODO: We may want to take a look to see if the notification can
             // display the target to forward calls to.  This will require some
             // effort though, since there are multiple layers of messages that
             // will need to propagate that information.
-
             SubscriptionInfo subInfo = mSubscriptionManager.getActiveSubscriptionInfo(subId);
             if (subInfo == null) {
                 Log.w(LOG_TAG, "Found null subscription info for: " + subId);
                 return;
             }
-
             String notificationTitle;
             if (mTelephonyManager.getPhoneCount() > 1) {
                 notificationTitle = subInfo.getDisplayName().toString();
             } else {
                 notificationTitle = mContext.getString(R.string.labelCF);
             }
-
             Notification.Builder builder = new Notification.Builder(mContext)
                     .setSmallIcon(R.drawable.stat_sys_phone_call_forward)
                     .setColor(subInfo.getIconTint())
@@ -519,7 +527,6 @@ public class NotificationMgr {
                     .setContentText(mContext.getString(R.string.sum_cfu_enabled_indicator))
                     .setShowWhen(false)
                     .setOngoing(true);
-
             Intent intent = new Intent(Intent.ACTION_MAIN);
             intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
             intent.setClassName("com.android.phone", "com.android.phone.CallFeaturesSetting");
@@ -527,7 +534,6 @@ public class NotificationMgr {
                     intent, mSubscriptionManager.getActiveSubscriptionInfo(subId));
             PendingIntent contentIntent =
                     PendingIntent.getActivity(mContext, subId /* requestCode */, intent, 0);
-
             List<UserInfo> users = mUserManager.getUsers(true);
             for (int i = 0; i < users.size(); i++) {
                 final UserInfo user = users.get(i);
@@ -549,7 +555,6 @@ public class NotificationMgr {
                     UserHandle.ALL);
         }
     }
-
     /**
      * Shows the "data disconnected due to roaming" notification, which
      * appears when you lose data connectivity because you're roaming and
@@ -557,19 +562,15 @@ public class NotificationMgr {
      */
     /* package */ void showDataDisconnectedRoaming() {
         if (DBG) log("showDataDisconnectedRoaming()...");
-
         // "Mobile network settings" screen / dialog
         Intent intent = new Intent(mContext, com.android.phone.MobileNetworkSettings.class);
         PendingIntent contentIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
-
         final CharSequence contentText = mContext.getText(R.string.roaming_reenable_message);
-
         final Notification.Builder builder = new Notification.Builder(mContext)
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentTitle(mContext.getText(R.string.roaming))
                 .setColor(mContext.getResources().getColor(R.color.dialer_theme_color))
                 .setContentText(contentText);
-
         List<UserInfo> users = mUserManager.getUsers(true);
         for (int i = 0; i < users.size(); i++) {
             final UserInfo user = users.get(i);
@@ -584,7 +585,6 @@ public class NotificationMgr {
                     null /* tag */, DATA_DISCONNECTED_ROAMING_NOTIFICATION, notif, userHandle);
         }
     }
-
     /**
      * Turns off the "data disconnected due to roaming" notification.
      */
@@ -592,14 +592,12 @@ public class NotificationMgr {
         if (DBG) log("hideDataDisconnectedRoaming()...");
         mNotificationManager.cancel(DATA_DISCONNECTED_ROAMING_NOTIFICATION);
     }
-
     /**
      * Display the network selection "no service" notification
      * @param operator is the numeric operator number
      */
     private void showNetworkSelection(String operator) {
         if (DBG) log("showNetworkSelection(" + operator + ")...");
-
         Notification.Builder builder = new Notification.Builder(mContext)
                 .setSmallIcon(android.R.drawable.stat_sys_warning)
                 .setContentTitle(mContext.getString(R.string.notification_network_selection_title))
@@ -607,17 +605,16 @@ public class NotificationMgr {
                         mContext.getString(R.string.notification_network_selection_text, operator))
                 .setShowWhen(false)
                 .setOngoing(true);
-
         // create the target network operators settings intent
         Intent intent = new Intent(Intent.ACTION_MAIN);
         intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK |
                 Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED);
         // Use NetworkSetting to handle the selection intent
-        intent.setComponent(new ComponentName("com.android.phone",
-                "com.android.phone.NetworkSetting"));
+        intent.setComponent(new ComponentName(
+                mContext.getString(R.string.network_operator_settings_package),
+                mContext.getString(R.string.network_operator_settings_class)));
         intent.putExtra(GsmUmtsOptions.EXTRA_SUB_ID, mPhone.getSubId());
         PendingIntent contentIntent = PendingIntent.getActivity(mContext, 0, intent, 0);
-
         List<UserInfo> users = mUserManager.getUsers(true);
         for (int i = 0; i < users.size(); i++) {
             final UserInfo user = users.get(i);
@@ -633,7 +630,6 @@ public class NotificationMgr {
                     userHandle);
         }
     }
-
     /**
      * Turn off the network selection "no service" notification
      */
@@ -642,7 +638,6 @@ public class NotificationMgr {
         mNotificationManager.cancelAsUser(
                 null /* tag */, SELECTED_OPERATOR_FAIL_NOTIFICATION, UserHandle.ALL);
     }
-
     /**
      * Update notification about no service of user selected operator
      *
@@ -663,10 +658,8 @@ public class NotificationMgr {
                     networkSelection =
                             sp.getString(PhoneBase.NETWORK_SELECTION_KEY + subId, "");
                 }
-
                 if (DBG) log("updateNetworkSelection()..." + "state = " +
                         serviceState + " new network " + networkSelection);
-
                 if (serviceState == ServiceState.STATE_OUT_OF_SERVICE
                         && !TextUtils.isEmpty(networkSelection)) {
                     if (!mSelectedUnavailableNotify) {
@@ -685,16 +678,13 @@ public class NotificationMgr {
             }
         }
     }
-
     /* package */ void postTransientNotification(int notifyId, CharSequence msg) {
         if (mToast != null) {
             mToast.cancel();
         }
-
         mToast = Toast.makeText(mContext, msg, Toast.LENGTH_LONG);
         mToast.show();
     }
-
     private void log(String msg) {
         Log.d(LOG_TAG, msg);
     }
